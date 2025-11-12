@@ -1,0 +1,23 @@
+mysql> DELIMITER //
+mysql> create procedure B(in roll_new int,in book_name varchar(20))
+    -> begin
+    -> declare x int;
+    -> declare continue handler for not found
+    -> begin
+    -> select 'NOT FOUND';
+    -> end;
+    -> select datediff(curdate(),DOI) into X from Borrower where roll_no=roll_new;
+    -> if(X>15 && X<30)
+    -> then
+    -> insert into Fine values(roll_new,curdate(),(X*5));
+    -> end if;
+    -> if(X>30)
+    -> then
+    -> insert into Fine values(roll_new,curdate(),(X*50));
+    -> end if;
+    -> update Borrower set status='returned' where roll_no=roll_new;
+    -> end;
+    -> //
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+
+mysql> call B(86,'shaikh');
