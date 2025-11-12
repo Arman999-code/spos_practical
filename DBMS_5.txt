@@ -1,0 +1,71 @@
+mysql> delimiter //
+mysql> create procedure proc_result(in marks int,out class char(20))
+    -> begin
+    -> if marks between 1500 and 990
+    -> then
+    -> set class='Distinction';
+    -> end if;
+    -> if marks between 990 and 880
+    -> then
+    -> set class='First_class';
+    -> end if;
+    -> if marks between 880 and 750
+    -> then
+    -> set class='Second_Class';
+    -> end if;
+    -> if marks between 750 and 650
+    -> then
+    -> set class='Passed';
+    -> end if;
+    -> if marks <= 650
+    -> then
+    -> set class='fail';
+    -> end if;
+    -> end //
+Query OK, 0 rows affected (0.02 sec)
+delimiter ;
+
+DELIMITER //
+
+CREATE FUNCTION final_result3(R1 INT)
+RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+    DECLARE fmarks INT;
+    DECLARE frank VARCHAR(20);
+
+    -- Get total marks for the given roll number
+    SELECT total_marks 
+    INTO fmarks
+    FROM marks
+    WHERE roll_no = R1;
+
+    -- Determine rank based on marks
+    IF fmarks BETWEEN 990 AND 1500 THEN
+        SET frank = 'Rank 1';
+    END IF;
+
+    IF fmarks BETWEEN 890 AND 989 THEN
+        SET frank = 'Rank 2';
+    END IF;
+
+    IF fmarks BETWEEN 825 AND 889 THEN
+        SET frank = 'Rank 3';
+    END IF;
+
+    IF fmarks BETWEEN 750 AND 824 THEN
+        SET frank = 'Rank 4';
+    END IF;
+
+    IF fmarks BETWEEN 650 AND 749 THEN
+        SET frank = 'Rank 5';
+    END IF;
+
+    IF fmarks < 650 THEN
+        SET frank = 'No Rank';
+    END IF;
+
+    RETURN frank;
+END //
+
+DELIMITER ;
