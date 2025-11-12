@@ -1,71 +1,64 @@
-mysql> delimiter //
-mysql> create procedure proc_result(in marks int,out class char(20))
-    -> begin
-    -> if marks between 1500 and 990
-    -> then
-    -> set class='Distinction';
-    -> end if;
-    -> if marks between 990 and 880
-    -> then
-    -> set class='First_class';
-    -> end if;
-    -> if marks between 880 and 750
-    -> then
-    -> set class='Second_Class';
-    -> end if;
-    -> if marks between 750 and 650
-    -> then
-    -> set class='Passed';
-    -> end if;
-    -> if marks <= 650
-    -> then
-    -> set class='fail';
-    -> end if;
-    -> end //
-Query OK, 0 rows affected (0.02 sec)
-delimiter ;
+
+Before running this function and procedure block create 2 tables marks and result and insert values in marks 
+DELIMITER //
+
+CREATE FUNCTION get_class(p_marks INT) RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+    DECLARE grade VARCHAR(20);
+
+    IF p_marks BETWEEN 991 AND 1499 THEN
+        SET grade = 'Distinction';
+    ELSEIF p_marks BETWEEN 890 AND 989 THEN
+        SET grade = 'First Class';
+    ELSEIF p_marks BETWEEN 826 AND 889 THEN
+        SET grade = 'Higher Second Class';
+    ELSEIF p_marks BETWEEN 751 AND 825 THEN
+        SET grade = 'Second Class';
+    ELSEIF p_marks BETWEEN 651 AND 750 THEN
+        SET grade = 'Passed';
+    ELSE
+        SET grade = 'Fail';
+    END IF;
+
+    RETURN grade;
+END;
+//
+
+DELIMITER ;
 
 DELIMITER //
 
-CREATE FUNCTION final_result3(R1 INT)
-RETURNS VARCHAR(20)
-DETERMINISTIC
+CREATE PROCEDURE final_result(IN R1 INT)
 BEGIN
     DECLARE fmarks INT;
-    DECLARE frank VARCHAR(20);
+    DECLARE stud_name VARCHAR(50);
+    DECLARE grade VARCHAR(20);
 
-    -- Get total marks for the given roll number
-    SELECT total_marks 
-    INTO fmarks
+    -- Fetch marks and name safely
+    SELECT name, total_marks INTO stud_name, fmarks
     FROM marks
-    WHERE roll_no = R1;
+    WHERE roll_no = R1
+    LIMIT 1;
 
-    -- Determine rank based on marks
-    IF fmarks BETWEEN 990 AND 1500 THEN
-        SET frank = 'Rank 1';
+    -- If no record found, set defaults
+    IF stud_name IS NULL THEN
+        SET stud_name = 'Unknown';
+        SET fmarks = 0;
     END IF;
 
-    IF fmarks BETWEEN 890 AND 989 THEN
-        SET frank = 'Rank 2';
-    END IF;
+    -- Call function to calculate class
+    SET grade = get_class(fmarks);
 
-    IF fmarks BETWEEN 825 AND 889 THEN
-        SET frank = 'Rank 3';
-    END IF;
+    -- Insert into result table
+    INSERT INTO result(roll_no, name, class)
+    VALUES (R1, stud_name, grade);
 
-    IF fmarks BETWEEN 750 AND 824 THEN
-        SET frank = 'Rank 4';
-    END IF;
-
-    IF fmarks BETWEEN 650 AND 749 THEN
-        SET frank = 'Rank 5';
-    END IF;
-
-    IF fmarks < 650 THEN
-        SET frank = 'No Rank';
-    END IF;
-
-    RETURN frank;
-END //
+    -- Display output
+    SELECT stud_name, grade AS class;
+END;
+//
 
 DELIMITER ;
+Ex :- CALL final_result(29);
+
